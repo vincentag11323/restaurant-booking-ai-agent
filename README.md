@@ -10,10 +10,10 @@ Guests use it from the PWA's **Ask** tab (`resortos-booking-web`, `src/agent-api
 
 ## Run
 
-1. Start the booking API (`../resortos-booking-api`), after `npm run db:migrate && npm run db:seed` there. The seed creates the assistant's account from the API's `AGENT_EMAIL` / `AGENT_PASSWORD`.
+1. Start the booking API (`../resortos-booking-api`), after `npm run db:migrate && npm run db:seed` there. The seed creates the assistant's account and stores only the SHA-256 of the API's `AGENT_API_KEY`.
 2. Here:
    ```bash
-   cp .env.example .env   # add LLM_API_KEY, LLM_MODEL, AGENT_PASSWORD (same as the API's), AGENT_DRAFT_SECRET
+   cp .env.example .env   # add LLM_API_KEY, LLM_MODEL, AGENT_API_KEY (same as the API's, at least 32 characters), AGENT_DRAFT_SECRET
    npm install
    npm run smoke          # free: lists the models your key can use
    npm run dev            # http://localhost:4300
