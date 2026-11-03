@@ -32,8 +32,11 @@ export interface TurnTools {
 
 /** Runs the model with the tools. Production: Mastra (src/agent/mastra_brain.ts). Tests: a scripted fake. */
 export interface Brain {
-  run(messages: ChatMessage[], tools: TurnTools, today: { date: string; time: string; weekday: string }): Promise<string>;
+  run(messages: ChatMessage[], tools: TurnTools, today: { date: string; time: string; weekday: string }, signal?: AbortSignal): Promise<string>;
 }
+
+/** Longest a turn may wait for the model before the guest is told the assistant is busy (agent_spec.md §13.2 F7). */
+const TURN_TIMEOUT_MS = 25_000;
 
 export interface ChatDeps {
   brain: Brain;
@@ -42,6 +45,7 @@ export interface ChatDeps {
   utcOffset: string;
   now?: () => Date;
   log?: (line: string) => void;
+  turnTimeoutMs?: number;
 }
 
 export interface ChatResult {
@@ -102,7 +106,9 @@ export async function handleChat(raw: unknown, request: { clientIp?: string }, d
     if (messages.at(-1)?.role !== "user") return { status: 400, body: { reply: "Invalid request: the last message must be from the guest" } };
 
     // What the tools learned this turn. The reply is decided from this, not from model text, when it matters.
-    const turn: { draft?: BookingDraft; full?: { draft: BookingDraft; alternatives: PendingBooking[] }; topic?: string } = {};
+    const turn: { draft?: BookingDraft; full?: { draft: BookingDraft; alternatives: PendingBooking[] }; topic?: string; refusal?: string } = {};
+    const used: string[] = [];
+    const started = Date.now();
     const tools: TurnTools = {
       async checkAvailability(input) {
         const args = z.object({ branch: z.enum(BRANCHES), sector: z.enum(SECTORS), date: z.string() }).safeParse(input);
@@ -117,11 +123,13 @@ export async function handleChat(raw: unknown, request: { clientIp?: string }, d
         const args = draftSchema.safeParse(input);
         if (!args.success) return { ok: false, error: "I need the branch, room, date, sitting time and number of guests." };
         const draft = args.data;
+        // The model loop stops after proposeBooking, so a refusal is sent to the guest verbatim by code.
+        const refuse = (error: string) => ((turn.refusal = error), { ok: false, error });
         const problem = validateDraft(draft, deps.utcOffset, now());
-        if (problem) return { ok: false, error: problem };
+        if (problem) return refuse(problem);
         const guest = await deps.api.lookupGuest(email);
         if (guest.upcomingAssistantBookings >= guest.assistantBookingLimit) {
-          return { ok: false, error: guest.assistantBookingLimit === 1 ? LIMIT_NOT_SIGNED_UP : LIMIT_SIGNED_UP };
+          return refuse(guest.assistantBookingLimit === 1 ? LIMIT_NOT_SIGNED_UP : LIMIT_SIGNED_UP);
         }
         const slot = (await deps.api.availability(draft.branch, draft.sector, draft.date)).find((s) => s.startTime === draft.startTime);
         if (!slot?.bookable || slot.freeUnits < unitsNeeded(draft.sector, draft.partySize)) {
@@ -137,7 +145,12 @@ export async function handleChat(raw: unknown, request: { clientIp?: string }, d
       },
     };
 
-    const text = await deps.brain.run(messages, tools, localNow(deps.utcOffset, now()));
+    const tracked = Object.fromEntries(
+      Object.entries(tools).map(([name, fn]) => [name, (input: unknown) => (used.push(name), fn(input))]),
+    ) as unknown as TurnTools;
+    const text = await withTimeout(deps.turnTimeoutMs ?? TURN_TIMEOUT_MS, (signal) => deps.brain.run(messages, tracked, localNow(deps.utcOffset, now()), signal)).finally(
+      () => log(`turn tools=${used.join(",") || "none"} ms=${Date.now() - started} status=${turn.topic || turn.draft || turn.full || turn.refusal ? 200 : "reply"}`),
+    );
 
     if (turn.topic) {
       log(`not_supported topic=${JSON.stringify(turn.topic)}`);
@@ -146,6 +159,7 @@ export async function handleChat(raw: unknown, request: { clientIp?: string }, d
     if (turn.draft) {
       return { status: 200, body: { reply: `Here's the booking: ${describeDraft(turn.draft)}. Shall I book it?`, pendingBooking: sign(turn.draft) } };
     }
+    if (turn.refusal) return { status: 200, body: { reply: turn.refusal } };
     if (turn.full) {
       const { draft, alternatives } = turn.full;
       const intro = `There isn't room for ${guests(draft.partySize)} at ${draft.startTime} on ${formatDay(draft.date)}`;
@@ -156,6 +170,24 @@ export async function handleChat(raw: unknown, request: { clientIp?: string }, d
     if (err instanceof BookingApiError) return { status: 502, body: { reply: API_DOWN } };
     if (err instanceof LlmError) return mapLlmError(err);
     throw err;
+  }
+}
+
+/** Runs the model call with a deadline; on expiry the call is aborted and the turn reports a timeout. */
+async function withTimeout<T>(ms: number, run: (signal: AbortSignal) => Promise<T>): Promise<T> {
+  const controller = new AbortController();
+  let timer: NodeJS.Timeout | undefined;
+  const deadline = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => {
+      // Reject first: abort() runs the model's abort handlers synchronously, and their error must not win the race.
+      reject(new LlmError(0, "timeout", "The model took too long"));
+      controller.abort();
+    }, ms);
+  });
+  try {
+    return await Promise.race([run(controller.signal), deadline]);
+  } finally {
+    clearTimeout(timer);
   }
 }
 

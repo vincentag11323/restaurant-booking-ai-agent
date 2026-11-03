@@ -121,15 +121,46 @@ describe("a booking conversation", () => {
     assert.deepEqual(toolResult, { ok: false, error: "That date has passed. Bookings open from today up to 60 days ahead." });
   });
 
-  it("returns rule problems to the model so it can explain them", async () => {
+  it("sends a proposeBooking refusal to the guest verbatim, even when the model says nothing after it", async () => {
     let toolResult: unknown;
     const { brain } = scriptedBrain(async (tools) => {
       toolResult = await tools.proposeBooking({ ...draft, partySize: 51 });
-      return "A booking can be for 1 to 50 guests.";
+      return "";
     });
     const res = await handleChat({ contact, messages: ask() }, { clientIp: "1.2.3.4" }, deps(brain, fakeApi().api));
     assert.deepEqual(toolResult, { ok: false, error: "A booking can be for 1 to 50 guests." });
-    assert.equal(res.body.pendingBooking, undefined);
+    assert.deepEqual(res, { status: 200, body: { reply: "A booking can be for 1 to 50 guests." } });
+
+    const limited = await handleChat({ contact, messages: ask() }, { clientIp: "1.2.3.4" }, deps(scriptedBrain(async (tools) => (await tools.proposeBooking(draft), "")).brain, fakeApi({ upcoming: 1, limit: 1 }).api));
+    assert.equal(limited.body.reply, "This email already has a booking made with the assistant. To book a different time, sign up with this email in the app, cancel that booking there, then ask me again.");
+  });
+
+  it("gives up on a turn that takes too long and says the assistant is busy", async () => {
+    let aborted = false;
+    const slow: Brain = {
+      run: (_m, _t, _d, signal) =>
+        new Promise((_resolve, reject) => {
+          signal?.addEventListener("abort", () => {
+            aborted = true;
+            reject(new Error("aborted"));
+          });
+        }),
+    };
+    const res = await handleChat({ contact, messages: ask() }, { clientIp: "1.2.3.4" }, { ...deps(slow, fakeApi().api), turnTimeoutMs: 30 });
+    assert.deepEqual(res, { status: 503, retryAfterSeconds: undefined, body: { reply: "The assistant is busy. Please try again in a moment." } });
+    assert.ok(aborted, "the model call is aborted, not left running");
+  });
+
+  it("logs one line per turn with the tools used and the time taken, never the message", async () => {
+    const logs: string[] = [];
+    const { brain } = scriptedBrain(async (tools) => {
+      await tools.checkAvailability({ branch: "BRANCH_1", sector: "MAIN_HALL", date: "2026-12-24" });
+      await tools.proposeBooking(draft);
+      return "";
+    });
+    await handleChat({ contact, messages: ask("Table for 4, secret plans") }, { clientIp: "1.2.3.4" }, deps(brain, fakeApi().api, logs));
+    assert.ok(logs.some((l) => /^turn tools=checkAvailability,proposeBooking ms=\d+ status=200$/.test(l)), logs.join(" / "));
+    assert.ok(!logs.some((l) => l.includes("secret")));
   });
 
   it("warns before drafting when an email that hasn't signed up already has its 1 assistant booking", async () => {

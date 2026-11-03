@@ -18,7 +18,7 @@ type ToolCallLike = { toolName?: string; payload?: { toolName?: string } };
 
 export function createMastraBrain(model: AgentModel): Brain {
   return {
-    async run(messages, tools, today) {
+    async run(messages, tools, today, signal) {
       const agent = new Agent({
         id: "booking-assistant",
         name: "ResortOS booking assistant",
@@ -57,6 +57,7 @@ export function createMastraBrain(model: AgentModel): Brain {
         const history = messages.map((m) => (m.role === "user" ? { role: "user" as const, content: m.content } : { role: "assistant" as const, content: m.content }));
         const result = await agent.generate(history, {
           maxSteps: MAX_STEPS,
+          abortSignal: signal,
           stopWhen: ({ steps }: { steps: { toolCalls?: ToolCallLike[] }[] }) =>
             steps.at(-1)?.toolCalls?.some((call) => FINAL_TOOLS.has(call.toolName ?? call.payload?.toolName ?? "")) ?? false,
         });
