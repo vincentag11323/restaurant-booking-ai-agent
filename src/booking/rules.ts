@@ -9,8 +9,8 @@ const SLOT_END: Record<string, string> = { "11:00": "13:30", "13:30": "16:00", "
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-export const BRANCH_LABEL = { BRANCH_1: "Branch 1", BRANCH_2: "Branch 2" } as const;
-export const SECTOR_LABEL = { MAIN_HALL: "Main Dining Hall", VIP_WING: "VIP Private Dining" } as const;
+const BRANCH_LABEL = { BRANCH_1: "Branch 1", BRANCH_2: "Branch 2" } as const;
+const SECTOR_LABEL = { MAIN_HALL: "Main Dining Hall", VIP_WING: "VIP Private Dining" } as const;
 
 function offsetMs(utcOffset: string): number {
   const [, sign, h, m] = /^([+-])(\d{2}):(\d{2})$/.exec(utcOffset) ?? [];
