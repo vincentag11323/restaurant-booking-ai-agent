@@ -35,6 +35,11 @@ npm run typecheck
 ```
 `npm run e2e` runs real conversations against Cent AI and the local API. It costs AI calls and stops at a hard budget.
 
+## Deploying
+
+* Set `TRUST_PROXY=true` only if **exactly one** proxy (your host's load balancer) sits in front of the server. With no proxy or several, a client could forge `X-Forwarded-For` and get around the per-IP limits.
+* The per-email cap (2 upcoming assistant bookings) is enforced by the booking API inside the booking transaction, so it holds even if IP limits are bypassed.
+
 ## Layout
 
 | Path | What lives there |

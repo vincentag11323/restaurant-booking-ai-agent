@@ -19,6 +19,9 @@ const UNAVAILABLE = "The assistant is unavailable right now. You can still book 
 const LLM_PROBLEM = "The assistant had a problem. Please try again.";
 const CAP_REACHED = "This email already has 2 upcoming bookings made with the assistant. Sign in to the app to manage them.";
 const MAX_UPCOMING = 2;
+const NOT_BOOKED = "That booking couldn't be made. Please try another time, or book in the app.";
+/** The one API rule message safe to show as-is: it only concerns the email the guest typed. */
+const API_CAP_MESSAGE = "This email already has 2 upcoming assistant bookings. Sign in to manage them.";
 
 /** The tools the model may call. Results go back to the model; side effects stay in this turn. */
 export interface TurnTools {
@@ -186,6 +189,7 @@ async function confirmBooking(
       const intro = `Someone just took the last space at ${draft.startTime} on ${formatDay(draft.date)}`;
       return { status: 200, body: { reply: listAlternatives(intro, alternatives), alternatives } };
     }
-    return { status: 200, body: { reply: err.message } };
+    // Any other refusal gets one generic reply, so the wording can't reveal what kind of account an email has.
+    return { status: 200, body: { reply: err.message === API_CAP_MESSAGE ? API_CAP_MESSAGE : NOT_BOOKED } };
   }
 }

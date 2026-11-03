@@ -242,10 +242,18 @@ describe("confirming a booking", () => {
     assert.ok((await handleChat(confirmBody(), { clientIp: "1.2.3.4" }, deps(noBrain, overlap.api))).body.reply.startsWith("Someone just took"));
   });
 
-  it("passes other API rule messages straight to the guest", async () => {
+  it("passes the per-email cap message to the guest", async () => {
     const { api } = fakeApi({ bookError: new BookingApiError(400, "This email already has 2 upcoming assistant bookings. Sign in to manage them.") });
     const res = await handleChat(confirmBody(), { clientIp: "1.2.3.4" }, deps(noBrain, api));
     assert.deepEqual(res, { status: 200, body: { reply: "This email already has 2 upcoming assistant bookings. Sign in to manage them." } });
+  });
+
+  it("gives one generic reply for any other API refusal, so replies can't reveal what kind of account an email has", async () => {
+    for (const message of ["This email can't be booked through the assistant", "Idempotency-Key was already used for another booking", "Something unexpected"]) {
+      const { api } = fakeApi({ bookError: new BookingApiError(400, message) });
+      const res = await handleChat(confirmBody(), { clientIp: "1.2.3.4" }, deps(noBrain, api));
+      assert.deepEqual(res, { status: 200, body: { reply: "That booking couldn't be made. Please try another time, or book in the app." } });
+    }
   });
 });
 
