@@ -6,6 +6,8 @@ What it can and can't do: **[AGENT_CAPABILITIES.md](AGENT_CAPABILITIES.md)**. De
 
 Mastra · Vercel AI SDK · TypeScript · Express · Zod. The AI model comes from Cent AI (`src/llm/cent_ai_api.ts` is the only provider-specific file).
 
+Guests use it from the PWA's **Ask** tab (`resortos-booking-web`, `src/agent-api/`), or any client that can POST JSON.
+
 ## Run
 
 1. Start the booking API (`../resortos-booking-api`), after `npm run db:migrate && npm run db:seed` there. The seed creates the assistant's account from the API's `AGENT_EMAIL` / `AGENT_PASSWORD`.
