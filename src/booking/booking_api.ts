@@ -1,5 +1,5 @@
-// HTTP client for resortos-booking-api. The agent signs in as the AGENT service account, which may only
-// book on a guest's behalf and look up one guest by exact email (agent_spec.md §5.5).
+// HTTP client for resortos-booking-api. The agent authenticates with X-Agent-Key (AGENT_API_KEY) as the AGENT
+// service account, which may only book on a guest's behalf and look up one guest by exact email (agent_spec.md §5.5).
 import type { Branch, BookingDraft, Reservation, Sector, Slot } from "../types/booking.ts";
 
 export class BookingApiError extends Error {
@@ -27,8 +27,7 @@ export interface BookingApi {
 
 export interface BookingApiConfig {
   baseUrl: string;
-  email: string;
-  password: string;
+  apiKey: string;
   timeoutMs?: number;
   fetch?: typeof fetch;
 }
@@ -36,7 +35,6 @@ export interface BookingApiConfig {
 export function createBookingApi(config: BookingApiConfig): BookingApi {
   const http = config.fetch ?? fetch;
   const timeoutMs = config.timeoutMs ?? 10_000;
-  let token: string | null = null;
 
   async function send(path: string, init: { method: "GET" | "POST"; body?: unknown; headers?: Record<string, string> }): Promise<Response> {
     try {
@@ -56,18 +54,9 @@ export function createBookingApi(config: BookingApiConfig): BookingApi {
     throw new BookingApiError(res.status, body.message ?? `Booking API returned HTTP ${res.status}`);
   }
 
-  async function signIn(): Promise<string> {
-    const res = await send("/auth/login", { method: "POST", body: { email: config.email, password: config.password } });
-    if (!res.ok) await fail(res);
-    token = ((await res.json()) as { accessToken: string }).accessToken;
-    return token;
-  }
-
-  /** Authenticated call; signs in on first use and once more if the 15-minute token has expired. */
+  /** Assistant-only call: sends the API key; a 401 (wrong key) is surfaced, not retried. */
   async function authed(path: string, init: { method: "GET" | "POST"; body?: unknown; headers?: Record<string, string> }): Promise<Response> {
-    const call = async (t: string) => send(path, { ...init, headers: { ...init.headers, authorization: `Bearer ${t}` } });
-    let res = await call(token ?? (await signIn()));
-    if (res.status === 401) res = await call(await signIn());
+    const res = await send(path, { ...init, headers: { ...init.headers, "x-agent-key": config.apiKey } });
     if (!res.ok) await fail(res);
     return res;
   }

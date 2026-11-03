@@ -23,7 +23,7 @@ const countingFetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
   return res;
 }) as typeof fetch;
 
-const api = createBookingApi({ baseUrl: config.bookingApiUrl, email: config.agentEmail, password: config.agentPassword });
+const api = createBookingApi({ baseUrl: config.bookingApiUrl, apiKey: config.agentApiKey });
 const deps = {
   brain: createMastraBrain(createCentAiModel({ ...config.llm, fetch: countingFetch })),
   api,

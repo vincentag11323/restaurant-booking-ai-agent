@@ -5,8 +5,7 @@ import { loadConfig } from "../src/config.ts";
 const env = {
   LLM_API_KEY: "cai_x",
   LLM_MODEL: "deepseek-v4.1-flash",
-  AGENT_EMAIL: "assistant@resortos.internal",
-  AGENT_PASSWORD: "pw",
+  AGENT_API_KEY: "test-agent-key-test-agent-key-0001",
   AGENT_DRAFT_SECRET: "a-long-enough-secret",
 };
 
@@ -15,8 +14,7 @@ describe("agent config", () => {
     assert.deepEqual(loadConfig(env), {
       port: 4300,
       bookingApiUrl: "http://localhost:4000",
-      agentEmail: "assistant@resortos.internal",
-      agentPassword: "pw",
+      agentApiKey: "test-agent-key-test-agent-key-0001",
       draftSecret: "a-long-enough-secret",
       utcOffset: "+07:00",
       trustProxy: false,
@@ -26,6 +24,9 @@ describe("agent config", () => {
   });
 
   it("names every invalid setting", () => {
-    assert.throws(() => loadConfig({ ...env, AGENT_DRAFT_SECRET: "short", AGENT_EMAIL: "nope" }), /AGENT_EMAIL.*AGENT_DRAFT_SECRET must be at least 16 characters|AGENT_DRAFT_SECRET.*AGENT_EMAIL/);
+    assert.throws(
+      () => loadConfig({ ...env, AGENT_DRAFT_SECRET: "short", AGENT_API_KEY: "short" }),
+      /AGENT_API_KEY: AGENT_API_KEY must be at least 32 characters.*AGENT_DRAFT_SECRET must be at least 16 characters|AGENT_DRAFT_SECRET must be at least 16 characters.*AGENT_API_KEY: AGENT_API_KEY must be at least 32 characters/,
+    );
   });
 });

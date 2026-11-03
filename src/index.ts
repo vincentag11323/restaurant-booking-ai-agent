@@ -8,7 +8,7 @@ import { createServer } from "./server.ts";
 const config = loadConfig();
 const deps = {
   brain: createMastraBrain(createCentAiModel(config.llm)),
-  api: createBookingApi({ baseUrl: config.bookingApiUrl, email: config.agentEmail, password: config.agentPassword }),
+  api: createBookingApi({ baseUrl: config.bookingApiUrl, apiKey: config.agentApiKey }),
   draftSecret: config.draftSecret,
   utcOffset: config.utcOffset,
   log: (line: string) => console.info(line),
