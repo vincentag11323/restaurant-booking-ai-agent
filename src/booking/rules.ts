@@ -40,21 +40,35 @@ export function validateDraft(draft: BookingDraft, utcOffset: string, now: Date 
     return `A booking can be for 1 to ${MAX_PARTY_SIZE} guests.`;
   }
   if (!SLOT_START_TIMES.includes(draft.startTime)) return "Sittings start at 11:00, 13:30, 17:00 and 19:30.";
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(draft.date) || Number.isNaN(Date.parse(draft.date))) return "I need the date as a calendar day.";
-
+  const dateProblem = validateDate(draft.date, utcOffset, now);
+  if (dateProblem) return dateProblem;
   const today = localNow(utcOffset, now);
-  const latest = addDays(today.date, MAX_DAYS_AHEAD);
-  if (draft.date < today.date) return `That date has passed. Bookings open from today up to ${MAX_DAYS_AHEAD} days ahead.`;
-  if (draft.date > latest) return `Bookings open up to ${MAX_DAYS_AHEAD} days ahead, so the latest date is ${latest}.`;
   if (draft.date === today.date && draft.startTime <= today.time) return "That sitting has already started. Please pick a later one.";
   return null;
 }
 
+/** Date-only checks (format, not past, within the booking window). */
+export function validateDate(date: string, utcOffset: string, now: Date = new Date()): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(date))) return "I need the date as a calendar day.";
+  const today = localNow(utcOffset, now).date;
+  const latest = addDays(today, MAX_DAYS_AHEAD);
+  if (date < today) return `That date has passed. Bookings open from today up to ${MAX_DAYS_AHEAD} days ahead.`;
+  if (date > latest) return `Bookings open up to ${MAX_DAYS_AHEAD} days ahead, so the latest date is ${latest}.`;
+  return null;
+}
+
+/** "Thu 24 Dec" */
+export function formatDay(date: string): string {
+  const [y, m, d] = date.split("-").map(Number);
+  return `${WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]} ${d} ${MONTHS[m - 1]}`;
+}
+
+export function guests(partySize: number): string {
+  return `${partySize} ${partySize === 1 ? "guest" : "guests"}`;
+}
+
 /** "4 guests at Branch 1, Main Dining Hall, on Thu 24 Dec from 19:30 to 22:00" */
 export function describeDraft(draft: BookingDraft): string {
-  const [y, m, d] = draft.date.split("-").map(Number);
-  const weekday = WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
-  const guests = `${draft.partySize} ${draft.partySize === 1 ? "guest" : "guests"}`;
   const note = draft.specialRequests ? ` (note: ${draft.specialRequests})` : "";
-  return `${guests} at ${BRANCH_LABEL[draft.branch]}, ${SECTOR_LABEL[draft.sector]}, on ${weekday} ${d} ${MONTHS[m - 1]} from ${draft.startTime} to ${SLOT_END[draft.startTime]}${note}`;
+  return `${guests(draft.partySize)} at ${BRANCH_LABEL[draft.branch]}, ${SECTOR_LABEL[draft.sector]}, on ${formatDay(draft.date)} from ${draft.startTime} to ${SLOT_END[draft.startTime]}${note}`;
 }
