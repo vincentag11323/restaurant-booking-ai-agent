@@ -5,11 +5,14 @@
   "scripts": {
     "test": "node --test tests/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "smoke": "node --env-file=.env scripts/cent_ai_smoke.ts"
+    "smoke": "node --env-file=.env scripts/cent_ai_smoke.ts",
+    "start": "node --env-file=.env src/index.ts",
+    "dev": "node --env-file=.env --watch src/index.ts"
   },
   "license": "UNLICENSED",
   "type": "module",
   "devDependencies": {
+    "@ai-sdk/provider": "^4.0.35",
     "@types/express": "^5.0.6",
     "@types/node": "^26.6.6",
     "typescript": "^7.0.2"
