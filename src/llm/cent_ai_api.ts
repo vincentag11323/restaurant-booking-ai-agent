@@ -35,8 +35,27 @@ export function centAiConfigFromEnv(env: Record<string, string | undefined> = pr
 }
 
 export function createCentAiModel(config: CentAiConfig) {
-  const options = { baseURL: config.baseUrl, apiKey: config.apiKey, fetch: config.fetch };
-  return config.format === "messages" ? createAnthropic(options)(config.model) : createOpenAI(options).responses(config.model);
+  const http = config.fetch ?? fetch;
+  if (config.format === "messages") {
+    return createAnthropic({ baseURL: config.baseUrl, apiKey: config.apiKey, fetch: dropUnsignedThinking(http) })(config.model);
+  }
+  return createOpenAI({ baseURL: config.baseUrl, apiKey: config.apiKey, fetch: http }).responses(config.model);
+}
+
+/**
+ * Non-Claude models on Cent AI's Messages format (e.g. DeepSeek) return `thinking` blocks without the
+ * `signature` the Anthropic provider requires, so the SDK rejects an otherwise valid reply. We never use the
+ * model's thinking, so unsigned thinking blocks are dropped from successful JSON responses.
+ */
+function dropUnsignedThinking(http: typeof fetch): typeof fetch {
+  return (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const res = await http(input, init);
+    if (!res.ok || !res.headers.get("content-type")?.includes("application/json")) return res;
+    const body = (await res.clone().json().catch(() => null)) as { content?: { type?: string; signature?: string }[] } | null;
+    if (!Array.isArray(body?.content) || !body.content.some((b) => b.type === "thinking" && !b.signature)) return res;
+    body.content = body.content.filter((b) => !(b.type === "thinking" && !b.signature));
+    return new Response(JSON.stringify(body), { status: res.status, statusText: res.statusText, headers: res.headers });
+  }) as typeof fetch;
 }
 
 export async function listCentAiModels(config: CentAiConfig): Promise<LlmModel[]> {

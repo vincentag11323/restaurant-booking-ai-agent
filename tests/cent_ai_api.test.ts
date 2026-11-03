@@ -20,6 +20,47 @@ describe("Cent AI model for Mastra", () => {
   });
 });
 
+describe("Cent AI quirks (Messages format)", () => {
+  // Captured from the e2e run: DeepSeek via Cent AI sends `thinking` blocks without the `signature`
+  // the Anthropic provider requires, which made the SDK reject a correct tool call.
+  const captured = {
+    content: [
+      { thinking: "All details present. Call proposeBooking.", type: "thinking" },
+      { id: "toolu_00_X", input: { branch: "BRANCH_1", date: "2026-11-10", partySize: 4, sector: "MAIN_HALL", startTime: "19:30" }, name: "proposeBooking", type: "tool_use" },
+    ],
+    id: "msg_01",
+    model: "deepseek-v4.1-flash",
+    role: "assistant",
+    stop_reason: "tool_use",
+    type: "message",
+    usage: { input_tokens: 1061, cache_creation_input_tokens: 0, cache_read_input_tokens: 0, output_tokens: 128, cost: "0.000020000" },
+  };
+
+  it("drops unsigned thinking blocks so the tool call gets through", async () => {
+    const fetchImpl = (async () => new Response(JSON.stringify(captured), { headers: { "content-type": "application/json" } })) as typeof fetch;
+    const model = createCentAiModel({ ...base, format: "messages", fetch: fetchImpl });
+    const result = await model.doGenerate({ prompt: [{ role: "user", content: [{ type: "text", text: "Book it" }] }] });
+    const toolCall = result.content.find((part) => part.type === "tool-call");
+    assert.ok(toolCall && toolCall.type === "tool-call");
+    assert.equal(toolCall.toolName, "proposeBooking");
+    assert.deepEqual(JSON.parse(toolCall.input), captured.content[1].input);
+  });
+
+  it("leaves signed thinking blocks and error bodies untouched", async () => {
+    const signed = { ...captured, content: [{ ...captured.content[0], signature: "sig" }, captured.content[1]] };
+    let seen = "";
+    const fetchImpl = (async () => new Response(JSON.stringify(signed), { headers: { "content-type": "application/json" } })) as typeof fetch;
+    const model = createCentAiModel({ ...base, format: "messages", fetch: (async (u: RequestInfo | URL, i?: RequestInit) => {
+      const res = await fetchImpl(u, i);
+      seen = await res.clone().text();
+      return res;
+    }) as typeof fetch });
+    const result = await model.doGenerate({ prompt: [{ role: "user", content: [{ type: "text", text: "Book it" }] }] });
+    assert.ok(result.content.some((part) => part.type === "reasoning"));
+    assert.ok(seen.includes('"signature":"sig"'));
+  });
+});
+
 describe("Cent AI models list", () => {
   it("calls GET /models with a Bearer token and normalises the entries", async () => {
     const calls: { url: string; auth: string | null }[] = [];
