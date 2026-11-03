@@ -1,0 +1,20 @@
+{
+  "name": "resortos-booking-agent",
+  "version": "1.0.0",
+  "description": "ResortOS booking assistant (AI agent)",
+  "scripts": {
+    "test": "node --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "smoke": "node --env-file=.env scripts/cent_ai_smoke.ts"
+  },
+  "license": "UNLICENSED",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=22.18"
+  }
+}
