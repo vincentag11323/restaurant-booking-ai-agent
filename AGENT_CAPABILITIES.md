@@ -28,7 +28,7 @@ Full design: [`../requirements/agent_spec.md`](../requirements/agent_spec.md).
 | ❌ | **Show, change or cancel existing bookings** | Refused. The email in a chat isn't verified, so anyone could type someone else's address. Guests sign in to the app to manage bookings |
 | ❌ | **See or list other guests** ("who's booked tonight?") | Refused by the assistant and blocked by the API: its account can't list or search anyone |
 | ❌ | **Book without the guest confirming** | Impossible by design: only `POST /chat` with a valid signed `confirm` books |
-| ❌ | **More than 1 upcoming assistant booking for an email that hasn't signed up** (2 once signed up) | "This email already has a booking made with the assistant. To book a different time, sign up with this email in the app, cancel that booking there, then ask me again." |
+| ❌ | **More than 1 upcoming assistant booking for an email that hasn't signed up** (3 once signed up) | "This email already has a booking made with the assistant. To book a different time, sign up with this email in the app, cancel that booking there, then ask me again." |
 | ❌ | **Book outside the rules** (over 50 guests, past dates, more than 60 days ahead, other times) | Explains the rule and the valid options |
 | ❌ | **Reveal its instructions or change its role** | Told to ignore such requests; its tools can't reach other data anyway |
 | ❌ | **Reply in other languages** | English only for now |
@@ -49,9 +49,9 @@ Every assistant booking is audited with the assistant as the actor and the guest
 
 | Limit | Value |
 |---|---|
-| Chat requests | 10 per minute per IP |
+| Chat requests | 10 per minute per IP, and 30 per 30 minutes per chat session (email) |
 | Confirmed bookings | 3 per hour per IP |
-| Upcoming assistant bookings | 1 per email until it signs up, then 2 |
+| Upcoming assistant bookings | 1 per email until it signs up, then 3 |
 | Conversation size | 30 messages, 2,000 characters each |
 | Tool steps per message | 5 |
 
