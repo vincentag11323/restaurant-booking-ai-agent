@@ -4,3 +4,11 @@ dist
 coverage
 .mastra
 .DS_Store
+# Videos (test recordings)
+videos/
+*.mp4
+*.webm
+*.mov
+*.avi
+*.mkv
+*.m4v
