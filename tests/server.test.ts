@@ -40,13 +40,25 @@ describe("agent HTTP server", () => {
   });
 
   it("limits chat per minute and bookings per hour separately", async () => {
-    await withServer({ limits: { chatPerMinute: 3, bookingsPerHour: 1 } }, async (url) => {
+    await withServer({ limits: { chatPerMinute: 3, bookingsPerHour: 1, perSession: 100 } }, async (url) => {
       assert.equal((await post(url, { confirm: {} })).status, 200);
       const secondBooking = await post(url, { confirm: {} });
       assert.deepEqual([secondBooking.status, await secondBooking.json()], [429, { reply: "Too many bookings from this connection. Please try again later or book in the app." }]);
       assert.equal((await post(url, { messages: [] })).status, 200, "plain chat isn't counted as a booking");
       const tooMany = await post(url, { messages: [] });
       assert.deepEqual([tooMany.status, await tooMany.json()], [429, { reply: "Too many messages. Please wait a minute and try again." }]);
+    });
+  });
+
+  it("limits one chat session (email) across connections", async () => {
+    await withServer({ limits: { chatPerMinute: 100, bookingsPerHour: 100, perSession: 2 } }, async (url) => {
+      const as = (email: string) => post(url, { contact: { email }, messages: [] });
+      assert.equal((await as("Guest@Example.com")).status, 200);
+      assert.equal((await as("guest@example.com")).status, 200);
+      const third = await as("guest@example.com");
+      assert.deepEqual([third.status, await third.json()], [429, { reply: "You've sent a lot of messages. Please wait a while and try again." }]);
+      assert.equal((await as("someone-else@example.com")).status, 200, "other sessions aren't affected");
+      assert.equal((await post(url, { messages: [] })).status, 200, "requests without an email are left to validation");
     });
   });
 

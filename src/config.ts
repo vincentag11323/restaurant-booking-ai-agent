@@ -10,6 +10,10 @@ const envSchema = z.object({
   RESTAURANT_UTC_OFFSET: z.string().regex(/^[+-]\d{2}:\d{2}$/).default("+07:00"),
   // Behind a hosting proxy, the client IP comes from X-Forwarded-For (rate limits and audit).
   TRUST_PROXY: z.enum(["true", "false"]).default("false"),
+  // Defaults are the production limits (agent_spec.md §5.4); the e2e run raises them so it isn't throttled.
+  CHAT_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(10),
+  BOOKINGS_LIMIT_PER_HOUR: z.coerce.number().int().positive().default(3),
+  SESSION_CHAT_LIMIT: z.coerce.number().int().positive().default(30),
 });
 
 export interface AgentConfig {
@@ -20,6 +24,7 @@ export interface AgentConfig {
   draftSecret: string;
   utcOffset: string;
   trustProxy: boolean;
+  limits: { chatPerMinute: number; bookingsPerHour: number; perSession: number };
   llm: CentAiConfig;
 }
 
@@ -35,6 +40,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     draftSecret: e.AGENT_DRAFT_SECRET,
     utcOffset: e.RESTAURANT_UTC_OFFSET,
     trustProxy: e.TRUST_PROXY === "true",
+    limits: { chatPerMinute: e.CHAT_LIMIT_PER_MINUTE, bookingsPerHour: e.BOOKINGS_LIMIT_PER_HOUR, perSession: e.SESSION_CHAT_LIMIT },
     llm: centAiConfigFromEnv(env),
   };
 }

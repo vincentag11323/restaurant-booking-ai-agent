@@ -25,7 +25,7 @@ function scriptedBrain(script: (tools: TurnTools) => Promise<string>) {
   return { brain, seen };
 }
 
-function fakeApi(opts: { free?: number; upcoming?: number; bookError?: BookingApiError; availabilityError?: BookingApiError } = {}) {
+function fakeApi(opts: { free?: number; upcoming?: number; limit?: number; bookError?: BookingApiError; availabilityError?: BookingApiError } = {}) {
   const booked: Parameters<BookingApi["book"]>[0][] = [];
   const api: BookingApi = {
     async availability(_branch, _sector, date): Promise<Slot[]> {
@@ -36,7 +36,7 @@ function fakeApi(opts: { free?: number; upcoming?: number; bookError?: BookingAp
       }));
     },
     async lookupGuest() {
-      return { exists: (opts.upcoming ?? 0) > 0, upcomingAssistantBookings: opts.upcoming ?? 0 };
+      return { exists: (opts.upcoming ?? 0) > 0, upcomingAssistantBookings: opts.upcoming ?? 0, assistantBookingLimit: opts.limit ?? 1 };
     },
     async book(input): Promise<Reservation> {
       booked.push(input);
@@ -132,14 +132,26 @@ describe("a booking conversation", () => {
     assert.equal(res.body.pendingBooking, undefined);
   });
 
-  it("warns before drafting when the email already has 2 upcoming assistant bookings", async () => {
+  it("warns before drafting when an email that hasn't signed up already has its 1 assistant booking", async () => {
     let toolResult: unknown;
     const { brain } = scriptedBrain(async (tools) => {
       toolResult = await tools.proposeBooking(draft);
-      return "That email already has 2 upcoming bookings.";
+      return "ignored";
     });
-    await handleChat({ contact, messages: ask() }, { clientIp: "1.2.3.4" }, deps(brain, fakeApi({ upcoming: 2 }).api));
-    assert.deepEqual(toolResult, { ok: false, error: "This email already has 2 upcoming bookings made with the assistant. Sign in to the app to manage them." });
+    await handleChat({ contact, messages: ask() }, { clientIp: "1.2.3.4" }, deps(brain, fakeApi({ upcoming: 1, limit: 1 }).api));
+    assert.deepEqual(toolResult, { ok: false, error: "This email already has a booking made with the assistant. To book a different time, sign up with this email in the app, cancel that booking there, then ask me again." });
+  });
+
+  it("warns before drafting when a signed-up email already has 3 assistant bookings, and allows the 3rd", async () => {
+    const results: unknown[] = [];
+    const { brain } = scriptedBrain(async (tools) => {
+      results.push(await tools.proposeBooking(draft));
+      return "ignored";
+    });
+    await handleChat({ contact, messages: ask() }, { clientIp: "1.2.3.4" }, deps(brain, fakeApi({ upcoming: 3, limit: 3 }).api));
+    const third = await handleChat({ contact, messages: ask() }, { clientIp: "1.2.3.4" }, deps(brain, fakeApi({ upcoming: 2, limit: 3 }).api));
+    assert.deepEqual(results[0], { ok: false, error: "This email already has 3 upcoming assistant bookings. Sign in to manage them." });
+    assert.ok(third.body.pendingBooking);
   });
 
   it("offers signed alternatives when the sitting is full", async () => {
@@ -242,10 +254,12 @@ describe("confirming a booking", () => {
     assert.ok((await handleChat(confirmBody(), { clientIp: "1.2.3.4" }, deps(noBrain, overlap.api))).body.reply.startsWith("Someone just took"));
   });
 
-  it("passes the per-email cap message to the guest", async () => {
-    const { api } = fakeApi({ bookError: new BookingApiError(400, "This email already has 2 upcoming assistant bookings. Sign in to manage them.") });
-    const res = await handleChat(confirmBody(), { clientIp: "1.2.3.4" }, deps(noBrain, api));
-    assert.deepEqual(res, { status: 200, body: { reply: "This email already has 2 upcoming assistant bookings. Sign in to manage them." } });
+  it("passes both per-email limit messages to the guest", async () => {
+    for (const message of ["This email already has a booking made with the assistant. To book a different time, sign up with this email in the app, cancel that booking there, then ask me again.", "This email already has 3 upcoming assistant bookings. Sign in to manage them."]) {
+      const { api } = fakeApi({ bookError: new BookingApiError(400, message) });
+      const res = await handleChat(confirmBody(), { clientIp: "1.2.3.4" }, deps(noBrain, api));
+      assert.deepEqual(res, { status: 200, body: { reply: message } });
+    }
   });
 
   it("gives one generic reply for any other API refusal, so replies can't reveal what kind of account an email has", async () => {

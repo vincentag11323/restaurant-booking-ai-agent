@@ -49,9 +49,9 @@ describe("booking API client", () => {
         rejected = true;
         return { status: 401, body: { message: "Invalid or expired token" } };
       }
-      return { status: 200, body: { exists: false, upcomingAssistantBookings: 0 } };
+      return { status: 200, body: { exists: false, upcomingAssistantBookings: 0, assistantBookingLimit: 1 } };
     });
-    assert.deepEqual(await createBookingApi({ ...config, fetch: fetchImpl }).lookupGuest("g@x.co"), { exists: false, upcomingAssistantBookings: 0 });
+    assert.deepEqual(await createBookingApi({ ...config, fetch: fetchImpl }).lookupGuest("g@x.co"), { exists: false, upcomingAssistantBookings: 0, assistantBookingLimit: 1 });
     assert.equal(logins, 2);
   });
 

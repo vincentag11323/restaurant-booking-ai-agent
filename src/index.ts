@@ -14,6 +14,6 @@ const deps = {
   log: (line: string) => console.info(line),
 };
 
-createServer({ handleChat: (body, request) => handleChat(body, request, deps), trustProxy: config.trustProxy }).listen(config.port, () => {
+createServer({ handleChat: (body, request) => handleChat(body, request, deps), trustProxy: config.trustProxy, limits: config.limits }).listen(config.port, () => {
   console.info(`ResortOS booking assistant listening on :${config.port} (model ${config.llm.model}, format ${config.llm.format})`);
 });

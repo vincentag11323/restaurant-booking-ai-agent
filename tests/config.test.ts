@@ -20,6 +20,7 @@ describe("agent config", () => {
       draftSecret: "a-long-enough-secret",
       utcOffset: "+07:00",
       trustProxy: false,
+      limits: { chatPerMinute: 10, bookingsPerHour: 3, perSession: 30 },
       llm: { format: "messages", baseUrl: "https://api.cent-ai.dev/v1", apiKey: "cai_x", model: "deepseek-v4.1-flash" },
     });
   });

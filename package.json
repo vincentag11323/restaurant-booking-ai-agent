@@ -8,7 +8,8 @@
     "smoke": "node --env-file=.env scripts/cent_ai_smoke.ts",
     "start": "node --env-file=.env src/index.ts",
     "dev": "node --env-file=.env --watch src/index.ts",
-    "e2e": "node --env-file=.env scripts/e2e.ts"
+    "e2e": "node --env-file=.env scripts/e2e.ts",
+    "start:test": "PORT=4500 BOOKING_API_URL=http://localhost:4400 AGENT_EMAIL=assistant@resortos.internal AGENT_PASSWORD=Agent12345! AGENT_DRAFT_SECRET=e2e-only-draft-secret-0001 CHAT_LIMIT_PER_MINUTE=1000 BOOKINGS_LIMIT_PER_HOUR=1000 SESSION_CHAT_LIMIT=1000 node --env-file=.env src/index.ts"
   },
   "license": "UNLICENSED",
   "type": "module",

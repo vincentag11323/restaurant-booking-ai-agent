@@ -17,11 +17,11 @@ const API_DOWN = "The booking system isn't responding. Nothing was booked; pleas
 const BUSY = "The assistant is busy. Please try again in a moment.";
 const UNAVAILABLE = "The assistant is unavailable right now. You can still book in the app.";
 const LLM_PROBLEM = "The assistant had a problem. Please try again.";
-const CAP_REACHED = "This email already has 2 upcoming bookings made with the assistant. Sign in to the app to manage them.";
-const MAX_UPCOMING = 2;
+// The booking API's per-email limits (agent_spec.md §5.4). Safe to show: they only concern the email the guest typed.
+const LIMIT_NOT_SIGNED_UP = "This email already has a booking made with the assistant. To book a different time, sign up with this email in the app, cancel that booking there, then ask me again.";
+const LIMIT_SIGNED_UP = "This email already has 3 upcoming assistant bookings. Sign in to manage them.";
 const NOT_BOOKED = "That booking couldn't be made. Please try another time, or book in the app.";
-/** The one API rule message safe to show as-is: it only concerns the email the guest typed. */
-const API_CAP_MESSAGE = "This email already has 2 upcoming assistant bookings. Sign in to manage them.";
+
 
 /** The tools the model may call. Results go back to the model; side effects stay in this turn. */
 export interface TurnTools {
@@ -119,7 +119,10 @@ export async function handleChat(raw: unknown, request: { clientIp?: string }, d
         const draft = args.data;
         const problem = validateDraft(draft, deps.utcOffset, now());
         if (problem) return { ok: false, error: problem };
-        if ((await deps.api.lookupGuest(email)).upcomingAssistantBookings >= MAX_UPCOMING) return { ok: false, error: CAP_REACHED };
+        const guest = await deps.api.lookupGuest(email);
+        if (guest.upcomingAssistantBookings >= guest.assistantBookingLimit) {
+          return { ok: false, error: guest.assistantBookingLimit === 1 ? LIMIT_NOT_SIGNED_UP : LIMIT_SIGNED_UP };
+        }
         const slot = (await deps.api.availability(draft.branch, draft.sector, draft.date)).find((s) => s.startTime === draft.startTime);
         if (!slot?.bookable || slot.freeUnits < unitsNeeded(draft.sector, draft.partySize)) {
           turn.full = { draft, alternatives: await alternativesFor(draft) };
@@ -190,6 +193,7 @@ async function confirmBooking(
       return { status: 200, body: { reply: listAlternatives(intro, alternatives), alternatives } };
     }
     // Any other refusal gets one generic reply, so the wording can't reveal what kind of account an email has.
-    return { status: 200, body: { reply: err.message === API_CAP_MESSAGE ? API_CAP_MESSAGE : NOT_BOOKED } };
+    const limitMessage = err.message === LIMIT_NOT_SIGNED_UP || err.message === LIMIT_SIGNED_UP;
+    return { status: 200, body: { reply: limitMessage ? err.message : NOT_BOOKED } };
   }
 }

@@ -11,9 +11,17 @@ export class BookingApiError extends Error {
   }
 }
 
+/** POST /api/agent/guests/lookup: the most the assistant may know about one guest. */
+export interface GuestLookup {
+  exists: boolean;
+  upcomingAssistantBookings: number;
+  /** 1 until the email signs up, then 3. */
+  assistantBookingLimit: number;
+}
+
 export interface BookingApi {
   availability(branch: Branch, sector: Sector, date: string): Promise<Slot[]>;
-  lookupGuest(email: string): Promise<{ exists: boolean; upcomingAssistantBookings: number }>;
+  lookupGuest(email: string): Promise<GuestLookup>;
   book(input: { draft: BookingDraft; email: string; phone?: string; clientIp?: string; idempotencyKey: string }): Promise<Reservation>;
 }
 
@@ -72,7 +80,7 @@ export function createBookingApi(config: BookingApiConfig): BookingApi {
     },
 
     async lookupGuest(email) {
-      return (await (await authed("/agent/guests/lookup", { method: "POST", body: { email } })).json()) as { exists: boolean; upcomingAssistantBookings: number };
+      return (await (await authed("/agent/guests/lookup", { method: "POST", body: { email } })).json()) as GuestLookup;
     },
 
     async book({ draft, email, phone, clientIp, idempotencyKey }) {
