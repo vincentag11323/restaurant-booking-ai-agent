@@ -64,5 +64,6 @@ Every assistant booking is audited with the assistant as the actor and the guest
 | AI budget used up | "The assistant is unavailable right now. You can still book in the app." |
 | Confirmation edited or older than 15 minutes | "Those booking details changed or expired. Please ask again." |
 | Confirmation retried after a timeout | Returns the same booking; never books twice |
+| Booking refused for another reason | "That booking couldn't be made. Please try another time, or book in the app." (one wording, so replies don't reveal anything about an email's account) |
 
 Guest email and phone are never sent to the AI model, and chat messages are never logged.
