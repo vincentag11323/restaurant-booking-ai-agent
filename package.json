@@ -10,11 +10,20 @@
   "license": "UNLICENSED",
   "type": "module",
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "@types/node": "^26.6.6",
     "typescript": "^7.0.2"
   },
   "private": true,
   "engines": {
     "node": ">=22.18"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^4.0.96",
+    "@ai-sdk/openai": "^4.0.108",
+    "@mastra/core": "^1.81.0",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.3",
+    "zod": "^4.6.7"
   }
 }
