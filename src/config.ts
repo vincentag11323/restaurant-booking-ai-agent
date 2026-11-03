@@ -9,7 +9,7 @@ const envSchema = z.object({
   RESTAURANT_UTC_OFFSET: z.string().regex(/^[+-]\d{2}:\d{2}$/).default("+07:00"),
   // Behind a hosting proxy, the client IP comes from X-Forwarded-For (rate limits and audit).
   TRUST_PROXY: z.enum(["true", "false"]).default("false"),
-  // Defaults are the production limits (agent_spec.md §5.4); the e2e run raises them so it isn't throttled.
+  // Defaults are the production limits (AGENT_SPEC.md §5.4); the e2e run raises them so it isn't throttled.
   CHAT_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(10),
   BOOKINGS_LIMIT_PER_HOUR: z.coerce.number().int().positive().default(3),
   SESSION_CHAT_LIMIT: z.coerce.number().int().positive().default(30),

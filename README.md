@@ -2,7 +2,7 @@
 
 Booking assistant for ResortOS Dining: answers table-booking questions and books on a guest's behalf after they confirm. No sign-in; guests give an email (required) and a phone number (optional).
 
-What it can and can't do: **[AGENT_CAPABILITIES.md](AGENT_CAPABILITIES.md)**. Design: [`../requirements/agent_spec.md`](../requirements/agent_spec.md).
+What it can and can't do: **[AGENT_CAPABILITIES.md](AGENT_CAPABILITIES.md)**. Design: [`../requirements/AGENT_SPEC.md`](../requirements/AGENT_SPEC.md).
 
 Mastra · Vercel AI SDK · TypeScript · Express · Zod. The AI model comes from Cent AI (`src/llm/cent_ai_api.ts` is the only provider-specific file).
 

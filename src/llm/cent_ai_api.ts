@@ -4,7 +4,7 @@
 //   listXModels(config)  → the models this key can use
 //   toLlmError(err)      → provider failures as LlmError
 //
-// Cent AI formats (LLM_API_FORMAT). Chosen by testing: messages (≈3.3× fewer input tokens, agent_spec.md §11.2c).
+// Cent AI formats (LLM_API_FORMAT). Chosen by testing: messages (≈3.3× fewer input tokens, AGENT_SPEC.md §11.2c).
 //   messages  → POST {baseUrl}/messages   Anthropic shape (x-api-key)
 //   responses → POST {baseUrl}/responses  OpenAI Responses shape (Bearer)
 import { createAnthropic } from "@ai-sdk/anthropic";

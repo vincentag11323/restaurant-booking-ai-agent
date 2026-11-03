@@ -1,4 +1,4 @@
-// The agent's own copy of the booking API's shapes (requirements/api_spec.md). Not shared with other repos on purpose.
+// The agent's own copy of the booking API's shapes (requirements/API_SPEC.md). Not shared with other repos on purpose.
 
 export type Branch = "BRANCH_1" | "BRANCH_2";
 export type Sector = "MAIN_HALL" | "VIP_WING";

@@ -1,4 +1,4 @@
-// The booking rules from requirements/technical_decisions.md §2, mirrored so the assistant can explain them
+// The booking rules from requirements/TECHNICAL_DECISIONS.md §2, mirrored so the assistant can explain them
 // before calling the API. The API stays the authority and re-checks everything.
 import { type BookingDraft, type Sector, SLOT_START_TIMES } from "../types/booking.ts";
 

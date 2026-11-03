@@ -22,7 +22,7 @@ export function createServer(deps: ServerDeps) {
   });
 
   const chatLimiter = rateLimit({ windowMs: 60_000, limit: limits.chatPerMinute, message: { reply: "Too many messages. Please wait a minute and try again." } });
-  // Confirmations are the only requests that book, so they get their own, tighter limit (agent_spec.md §5.4).
+  // Confirmations are the only requests that book, so they get their own, tighter limit (AGENT_SPEC.md §5.4).
   const bookingLimiter = rateLimit({
     windowMs: 60 * 60_000,
     limit: limits.bookingsPerHour,
@@ -31,7 +31,7 @@ export function createServer(deps: ServerDeps) {
   });
 
   // One chat session = the guest's email (no sign-in). Keyed by email so it holds across IPs; the IP limits
-  // above still apply because an email can be made up (agent_spec.md §5.4).
+  // above still apply because an email can be made up (AGENT_SPEC.md §5.4).
   const sessionEmail = (req: Request): string | undefined => {
     const email = (req.body as { contact?: { email?: unknown } } | undefined)?.contact?.email;
     return typeof email === "string" && email.includes("@") ? email.trim().toLowerCase() : undefined;

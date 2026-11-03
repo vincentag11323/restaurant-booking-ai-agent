@@ -1,4 +1,4 @@
-// System prompt for the booking assistant. Facts mirror requirements/technical_decisions.md §2.
+// System prompt for the booking assistant. Facts mirror requirements/TECHNICAL_DECISIONS.md §2.
 
 export function bookingInstructions(today: { date: string; time: string; weekday: string }): string {
   return `You are the table-booking assistant for ResortOS Dining, which has two restaurants: Branch 1 and Branch 2.

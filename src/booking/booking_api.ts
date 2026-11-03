@@ -1,5 +1,5 @@
 // HTTP client for resortos-booking-api. The agent authenticates with X-Agent-Key (AGENT_API_KEY) as the AGENT
-// service account, which may only book on a guest's behalf and look up one guest by exact email (agent_spec.md §5.5).
+// service account, which may only book on a guest's behalf and look up one guest by exact email (AGENT_SPEC.md §5.5).
 import type { Branch, BookingDraft, Reservation, Sector, Slot } from "../types/booking.ts";
 
 export class BookingApiError extends Error {

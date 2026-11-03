@@ -7,7 +7,7 @@ import { toLlmError } from "../llm/cent_ai_api.ts";
 import { BRANCHES, SECTORS, SLOT_START_TIMES } from "../types/booking.ts";
 import { bookingInstructions } from "./prompt.ts";
 
-/** Bounds a turn's tool loop (agent_spec.md §13.2 F9). */
+/** Bounds a turn's tool loop (AGENT_SPEC.md §13.2 F9). */
 const MAX_STEPS = 5;
 /** Once one of these runs, the server writes the reply from a template, so another model call would be wasted. */
 const FINAL_TOOLS = new Set(["proposeBooking", "notSupportedYet"]);

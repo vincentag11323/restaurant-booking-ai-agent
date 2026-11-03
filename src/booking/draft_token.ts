@@ -1,4 +1,4 @@
-// Signs a read-back booking so the guest confirms exactly what they were shown (agent_spec.md §13.3).
+// Signs a read-back booking so the guest confirms exactly what they were shown (AGENT_SPEC.md §13.3).
 // The token also serves as the API's Idempotency-Key, so a retried confirmation can't book twice.
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { BookingDraft } from "../types/booking.ts";

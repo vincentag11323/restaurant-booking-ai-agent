@@ -2,7 +2,7 @@
 
 The ResortOS Dining booking assistant is a chat API (`POST /chat`) that books tables at Branch 1 and Branch 2.
 Guests don't sign in. They give an **email (required)** and optionally a **phone number**.
-Full design: [`../requirements/agent_spec.md`](../requirements/agent_spec.md).
+Full design: [`../requirements/AGENT_SPEC.md`](../requirements/AGENT_SPEC.md).
 
 ## It can
 

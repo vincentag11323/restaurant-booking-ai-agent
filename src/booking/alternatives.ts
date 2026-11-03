@@ -1,4 +1,4 @@
-// Finds real, bookable alternatives when the requested sitting can't seat the party (agent_spec.md §13.1).
+// Finds real, bookable alternatives when the requested sitting can't seat the party (AGENT_SPEC.md §13.1).
 // Code, not the model, picks them, so every suggestion comes from live availability.
 import { type Branch, type BookingDraft, type Sector, type Slot, SLOT_START_TIMES, type SlotStartTime } from "../types/booking.ts";
 import { MAX_DAYS_AHEAD, addDays, localNow, unitsNeeded } from "./rules.ts";

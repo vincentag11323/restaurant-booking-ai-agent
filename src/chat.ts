@@ -17,7 +17,7 @@ const API_DOWN = "The booking system isn't responding. Nothing was booked; pleas
 const BUSY = "The assistant is busy. Please try again in a moment.";
 const UNAVAILABLE = "The assistant is unavailable right now. You can still book in the app.";
 const LLM_PROBLEM = "The assistant had a problem. Please try again.";
-// The booking API's per-email limits (agent_spec.md §5.4). Safe to show: they only concern the email the guest typed.
+// The booking API's per-email limits (AGENT_SPEC.md §5.4). Safe to show: they only concern the email the guest typed.
 const LIMIT_NOT_SIGNED_UP = "This email already has a booking made with the assistant. To book a different time, sign up with this email in the app, cancel that booking there, then ask me again.";
 const LIMIT_SIGNED_UP = "This email already has 3 upcoming assistant bookings. Sign in to manage them.";
 const NOT_BOOKED = "That booking couldn't be made. Please try another time, or book in the app.";
@@ -35,7 +35,7 @@ export interface Brain {
   run(messages: ChatMessage[], tools: TurnTools, today: { date: string; time: string; weekday: string }, signal?: AbortSignal): Promise<string>;
 }
 
-/** Longest a turn may wait for the model before the guest is told the assistant is busy (agent_spec.md §13.2 F7). */
+/** Longest a turn may wait for the model before the guest is told the assistant is busy (AGENT_SPEC.md §13.2 F7). */
 const TURN_TIMEOUT_MS = 25_000;
 
 export interface ChatDeps {
