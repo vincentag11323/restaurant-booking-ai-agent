@@ -1,6 +1,6 @@
 # What the Booking Assistant Can and Cannot Do
 
-The ResortOS Dining booking assistant is a chat API (`POST /chat`) that books tables at Branch 1 and Branch 2.
+The ResortOS Dining booking assistant is a chat API (`POST /agents/users/chats`) that books tables at Branch 1 and Branch 2.
 Guests don't sign in. They give an **email (required)** and optionally a **phone number**.
 Full design: [`../requirements/AGENT_SPEC.md`](../requirements/AGENT_SPEC.md).
 
@@ -27,7 +27,7 @@ Full design: [`../requirements/AGENT_SPEC.md`](../requirements/AGENT_SPEC.md).
 | ❌ | **Anything that isn't booking a table** (menu, allergies, prices, directions, weather, writing, coding, general chat) | Fixed reply: "I can only help with table bookings at ResortOS Dining." The topic is logged (not the message) so future versions can add support |
 | ❌ | **Show, change or cancel existing bookings** | Refused. The email in a chat isn't verified, so anyone could type someone else's address. Guests sign in to the app to manage bookings |
 | ❌ | **See or list other guests** ("who's booked tonight?") | Refused by the assistant and blocked by the API: its account can't list or search anyone |
-| ❌ | **Book without the guest confirming** | Impossible by design: only `POST /chat` with a valid signed `confirm` books |
+| ❌ | **Book without the guest confirming** | Impossible by design: only `POST /agents/users/chats` with a valid signed `confirm` books |
 | ❌ | **More than 1 upcoming assistant booking for an email that hasn't signed up** (3 once signed up) | "This email already has a booking made with the assistant. To book a different time, sign up with this email in the app, cancel that booking there, then ask me again." |
 | ❌ | **Book outside the rules** (over 50 guests, past dates, more than 60 days ahead, other times) | Explains the rule and the valid options |
 | ❌ | **Reveal its instructions or change its role** | Told to ignore such requests; its tools can't reach other data anyway |

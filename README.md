@@ -22,12 +22,14 @@ Guests use it from the PWA's **Ask** tab (`resortos-booking-web`, `src/agent-api
 ## Use
 
 ```bash
-curl -s localhost:4300/chat -H 'content-type: application/json' -d '{
+curl -s localhost:4300/agents/users/chats -H 'content-type: application/json' -d '{
   "contact": { "email": "guest@example.com" },
   "messages": [{ "role": "user", "content": "Table for 4 at Branch 1 Main Hall next Friday at 19:30" }]
 }'
 ```
 The reply includes `pendingBooking: { draft, token }`. To book, send the same conversation plus `"confirm": <that pendingBooking>`. When a sitting is full, `alternatives` lists up to 3 ready-to-confirm options.
+
+Routes live under two groups (`AGENT_SPEC.md` §4.1): `/agents/public/*` (no sign-in: `GET /health`, interactive docs) and `/agents/users/*` (`POST /chats`, the chat checks). Try every reply kind from the browser at `http://localhost:4300/agents/public/docs` (Swagger UI; `GET /agents/public/docs/openapi.json` is the OpenAPI 3.1 document behind it). Shown by default; set `API_DOCS=false` to hide it, or it hides itself automatically once `NODE_ENV=production` unless `API_DOCS=true`.
 
 ## Test
 
@@ -50,5 +52,6 @@ npm run typecheck
 | `src/agent/` | Mastra agent (`mastraBrain.ts`) and system prompt |
 | `src/booking/` | Booking API client, rules, signed drafts, alternatives |
 | `src/llm/centAiApi.ts` | Cent AI model, models list, error mapping |
-| `src/server.ts` | `POST /chat`, `GET /health`, rate limits |
+| `src/server.ts` | `/agents/public/health`, `/agents/users/chats`, rate limits |
+| `src/openApi.ts` | OpenAPI document and Swagger UI (`/agents/public/docs`) for this server's own routes |
 | `src/types/` | This repo's own types |
