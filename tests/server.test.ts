@@ -16,13 +16,13 @@ async function withServer(deps: Partial<ServerDeps>, run: (url: string) => Promi
 }
 
 const post = (url: string, body: unknown, raw = false) =>
-  fetch(`${url}/chat`, { method: "POST", headers: { "content-type": "application/json" }, body: raw ? (body as string) : JSON.stringify(body) });
+  fetch(`${url}/agents/users/chats`, { method: "POST", headers: { "content-type": "application/json" }, body: raw ? (body as string) : JSON.stringify(body) });
 
 describe("agent HTTP server", () => {
   it("answers health checks and passes chat to the handler with the client IP", async () => {
     const seen: { body: unknown; ip?: string }[] = [];
     await withServer({ handleChat: async (body, req) => (seen.push({ body, ip: req.clientIp }), { status: 200, body: { reply: "hi" } }) }, async (url) => {
-      assert.deepEqual(await (await fetch(`${url}/health`)).json(), { status: "ok" });
+      assert.deepEqual(await (await fetch(`${url}/agents/public/health`)).json(), { status: "ok" });
       const res = await post(url, { contact: { email: "a@b.co" }, messages: [] });
       assert.deepEqual([res.status, await res.json()], [200, { reply: "hi" }]);
       assert.equal(res.headers.get("x-powered-by"), null);
@@ -71,5 +71,14 @@ describe("agent HTTP server", () => {
       assert.deepEqual([res.status, await res.json()], [500, { reply: "Something went wrong. Nothing was booked; please try again." }]);
     });
     assert.deepEqual(logs, ["chat error=TypeError"]);
+  });
+
+  it("the old singular paths are gone (owner rule: routes live under /agents/public and /agents/users)", async () => {
+    await withServer({}, async (url) => {
+      const health = await fetch(`${url}/health`);
+      assert.deepEqual([health.status, await health.json()], [404, { reply: "Not found" }]);
+      const chat = await fetch(`${url}/chat`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: [] }) });
+      assert.deepEqual([chat.status, await chat.json()], [404, { reply: "Not found" }]);
+    });
   });
 });
