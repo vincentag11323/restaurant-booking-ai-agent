@@ -17,9 +17,11 @@ export function createServer(deps: ServerDeps) {
   if (deps.trustProxy) app.set("trust proxy", 1);
   app.use(express.json({ limit: "64kb" }));
 
-  app.get("/health", (_req, res) => {
+  const publicRoutes = express.Router();
+  publicRoutes.get("/health", (_req, res) => {
     res.json({ status: "ok" });
   });
+  app.use("/agents/public", publicRoutes);
 
   const chatLimiter = rateLimit({ windowMs: 60_000, limit: limits.chatPerMinute, message: { reply: "Too many messages. Please wait a minute and try again." } });
   // Confirmations are the only requests that book, so they get their own, tighter limit (AGENT_SPEC.md §5.4).
@@ -44,12 +46,14 @@ export function createServer(deps: ServerDeps) {
     message: { reply: "You've sent a lot of messages. Please wait a while and try again." },
   });
 
-  app.post("/chat", chatLimiter, sessionLimiter, bookingLimiter, async (req, res) => {
+  const userRoutes = express.Router();
+  userRoutes.post("/chats", chatLimiter, sessionLimiter, bookingLimiter, async (req, res) => {
     const result = await deps.handleChat(req.body, { clientIp: req.ip });
     if (result.retryAfterSeconds) res.set("Retry-After", String(result.retryAfterSeconds));
     log(`chat status=${result.status}`);
     res.status(result.status).json(result.body);
   });
+  app.use("/agents/users", userRoutes);
 
   app.use((_req, res) => {
     res.status(404).json({ reply: "Not found" });
