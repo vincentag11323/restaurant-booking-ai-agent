@@ -18,7 +18,7 @@ export interface BookingDraft {
   specialRequests?: string;
 }
 
-/** GET /api/availability item */
+/** GET /api/public/availabilities item */
 export interface Slot {
   startTime: SlotStartTime;
   slotStart: string;

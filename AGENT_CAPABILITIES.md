@@ -39,8 +39,8 @@ Full design: [`../requirements/AGENT_SPEC.md`](../requirements/AGENT_SPEC.md).
 
 | Allowed | Not allowed (403) |
 |---|---|
-| `POST /api/agent/reservations`: book for one guest email | Every other signed-in route: guest bookings, profiles, menu recommendations, all admin routes |
-| `POST /api/agent/guests/lookup`: one guest by exact email, answer is only `{ exists, upcomingAssistantBookings, assistantBookingLimit }` | Listing, searching, or reading names, phones or bookings of any guest |
+| `POST /api/agents/reservations`: book for one guest email | Every other signed-in route: guest bookings, profiles, menu recommendations, all admin routes |
+| `POST /api/agents/guests/lookup`: one guest by exact email, answer is only `{ exists, upcomingAssistantBookings, assistantBookingLimit }` | Listing, searching, or reading names, phones or bookings of any guest |
 | Public availability | |
 
 Every assistant booking is audited with the assistant as the actor and the guest as "on behalf of", and admins see it labelled **Booked by AI assistant**.

@@ -11,7 +11,7 @@ export class BookingApiError extends Error {
   }
 }
 
-/** POST /api/agent/guests/lookup: the most the assistant may know about one guest. */
+/** POST /api/agents/guests/lookup: the most the assistant may know about one guest. */
 export interface GuestLookup {
   exists: boolean;
   upcomingAssistantBookings: number;
@@ -63,17 +63,17 @@ export function createBookingApi(config: BookingApiConfig): BookingApi {
 
   return {
     async availability(branch, sector, date) {
-      const res = await send(`/availability?branch=${branch}&sector=${sector}&date=${date}`, { method: "GET" });
+      const res = await send(`/public/availabilities?branch=${branch}&sector=${sector}&date=${date}`, { method: "GET" });
       if (!res.ok) await fail(res);
       return (await res.json()) as Slot[];
     },
 
     async lookupGuest(email) {
-      return (await (await authed("/agent/guests/lookup", { method: "POST", body: { email } })).json()) as GuestLookup;
+      return (await (await authed("/agents/guests/lookup", { method: "POST", body: { email } })).json()) as GuestLookup;
     },
 
     async book({ draft, email, phone, clientIp, idempotencyKey }) {
-      const res = await authed("/agent/reservations", {
+      const res = await authed("/agents/reservations", {
         method: "POST",
         headers: { "idempotency-key": idempotencyKey },
         body: { ...draft, email, phone, clientIp },
