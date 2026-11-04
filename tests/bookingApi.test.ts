@@ -21,7 +21,7 @@ describe("booking API client", () => {
   it("reads availability without the API key", async () => {
     const { fetchImpl, calls } = fakeServer(() => ({ status: 200, body: [] }));
     await createBookingApi({ ...config, fetch: fetchImpl }).availability("BRANCH_2", "VIP_WING", "2026-12-24");
-    assert.equal(calls[0].url, "http://api.test/api/availability?branch=BRANCH_2&sector=VIP_WING&date=2026-12-24");
+    assert.equal(calls[0].url, "http://api.test/api/public/availabilities?branch=BRANCH_2&sector=VIP_WING&date=2026-12-24");
     assert.equal(calls[0].headers["x-agent-key"], undefined);
     assert.equal(calls[0].headers.authorization, undefined);
   });
@@ -31,7 +31,7 @@ describe("booking API client", () => {
     const api = createBookingApi({ ...config, fetch: fetchImpl });
     await api.book({ draft, email: "g@x.co", phone: "+62 811 000 111", clientIp: "1.2.3.4", idempotencyKey: "key-12345678" });
     await api.lookupGuest("g@x.co");
-    assert.deepEqual(calls.map((c) => `${c.method} ${c.url.replace("http://api.test/api", "")}`), ["POST /agent/reservations", "POST /agent/guests/lookup"]);
+    assert.deepEqual(calls.map((c) => `${c.method} ${c.url.replace("http://api.test/api", "")}`), ["POST /agents/reservations", "POST /agents/guests/lookup"]);
     for (const call of calls) {
       assert.equal(call.headers["x-agent-key"], config.apiKey);
       assert.equal(call.headers.authorization, undefined);
