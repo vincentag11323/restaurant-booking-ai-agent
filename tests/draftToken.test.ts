@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { signDraft, verifyDraft } from "../src/booking/draft_token.ts";
+import { signDraft, verifyDraft } from "../src/booking/draftToken.ts";
 import type { BookingDraft } from "../src/types/booking.ts";
 
 const secret = "test-secret-test-secret";

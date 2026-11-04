@@ -1,5 +1,5 @@
 // Provider-neutral LLM types. The rest of the agent depends only on these and on the model handed to Mastra;
-// src/llm/cent_ai_api.ts is the one file that knows the provider.
+// src/llm/centAiApi.ts is the one file that knows the provider.
 
 export interface LlmModel {
   id: string;

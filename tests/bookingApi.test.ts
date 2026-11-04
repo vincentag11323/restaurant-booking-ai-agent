@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { BookingApiError, createBookingApi } from "../src/booking/booking_api.ts";
+import { BookingApiError, createBookingApi } from "../src/booking/bookingApi.ts";
 
 type Handler = (url: string, init: RequestInit) => { status: number; body: unknown };
 

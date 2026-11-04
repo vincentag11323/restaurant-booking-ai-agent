@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type CentAiConfig, centAiConfigFromEnv } from "./llm/cent_ai_api.ts";
+import { type CentAiConfig, centAiConfigFromEnv } from "./llm/centAiApi.ts";
 
 const envSchema = z.object({
   PORT: z.coerce.number().int().default(4300),

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { BookingApiError, type BookingApi } from "../src/booking/booking_api.ts";
-import { signDraft, verifyDraft } from "../src/booking/draft_token.ts";
+import { BookingApiError, type BookingApi } from "../src/booking/bookingApi.ts";
+import { signDraft, verifyDraft } from "../src/booking/draftToken.ts";
 import { type Brain, type TurnTools, handleChat, REFUSAL } from "../src/chat.ts";
 import type { BookingDraft, Reservation, Slot } from "../src/types/booking.ts";
 import type { ChatMessage } from "../src/types/chat.ts";

@@ -3,8 +3,8 @@
 // so they're exact and never depend on model wording.
 import { z } from "zod";
 import { findAlternatives } from "./booking/alternatives.ts";
-import { BookingApiError, type BookingApi } from "./booking/booking_api.ts";
-import { signDraft, verifyDraft } from "./booking/draft_token.ts";
+import { BookingApiError, type BookingApi } from "./booking/bookingApi.ts";
+import { signDraft, verifyDraft } from "./booking/draftToken.ts";
 import { describeDraft, formatDay, guests, localNow, unitsNeeded, validateDate, validateDraft } from "./booking/rules.ts";
 import { BRANCHES, type BookingDraft, SECTORS, SLOT_START_TIMES } from "./types/booking.ts";
 import type { ChatMessage, ChatResponse, PendingBooking } from "./types/chat.ts";
@@ -30,7 +30,7 @@ export interface TurnTools {
   notSupportedYet(input: unknown): Promise<unknown>;
 }
 
-/** Runs the model with the tools. Production: Mastra (src/agent/mastra_brain.ts). Tests: a scripted fake. */
+/** Runs the model with the tools. Production: Mastra (src/agent/mastraBrain.ts). Tests: a scripted fake. */
 export interface Brain {
   run(messages: ChatMessage[], tools: TurnTools, today: { date: string; time: string; weekday: string }, signal?: AbortSignal): Promise<string>;
 }

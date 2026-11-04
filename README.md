@@ -4,7 +4,7 @@ Booking assistant for ResortOS Dining: answers table-booking questions and books
 
 What it can and can't do: **[AGENT_CAPABILITIES.md](AGENT_CAPABILITIES.md)**. Design: [`../requirements/AGENT_SPEC.md`](../requirements/AGENT_SPEC.md).
 
-Mastra · Vercel AI SDK · TypeScript · Express · Zod. The AI model comes from Cent AI (`src/llm/cent_ai_api.ts` is the only provider-specific file).
+Mastra · Vercel AI SDK · TypeScript · Express · Zod. The AI model comes from Cent AI (`src/llm/centAiApi.ts` is the only provider-specific file).
 
 Guests use it from the PWA's **Ask** tab (`resortos-booking-web`, `src/agent-api/`), or any client that can POST JSON.
 
@@ -47,8 +47,8 @@ npm run typecheck
 | Path | What lives there |
 |---|---|
 | `src/chat.ts` | One chat turn: validation, tools, read-back, confirm, alternatives, failure replies |
-| `src/agent/` | Mastra agent (`mastra_brain.ts`) and system prompt |
+| `src/agent/` | Mastra agent (`mastraBrain.ts`) and system prompt |
 | `src/booking/` | Booking API client, rules, signed drafts, alternatives |
-| `src/llm/cent_ai_api.ts` | Cent AI model, models list, error mapping |
+| `src/llm/centAiApi.ts` | Cent AI model, models list, error mapping |
 | `src/server.ts` | `POST /chat`, `GET /health`, rate limits |
 | `src/types/` | This repo's own types |

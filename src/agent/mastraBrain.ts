@@ -3,7 +3,7 @@ import { Agent } from "@mastra/core/agent";
 import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
 import type { Brain } from "../chat.ts";
-import { toLlmError } from "../llm/cent_ai_api.ts";
+import { toLlmError } from "../llm/centAiApi.ts";
 import { BRANCHES, SECTORS, SLOT_START_TIMES } from "../types/booking.ts";
 import { bookingInstructions } from "./prompt.ts";
 

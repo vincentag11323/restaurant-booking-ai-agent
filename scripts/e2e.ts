@@ -1,12 +1,12 @@
 // End-to-end check against the real model (Cent AI) and the local booking API. COSTS AI CALLS.
 // Hard budget: the run aborts before a call that would exceed E2E_MAX_AI_CALLS (default 5).
 // Run: npm run e2e   (booking API must be running with the assistant's account seeded)
-import { createMastraBrain } from "../src/agent/mastra_brain.ts";
-import { createBookingApi } from "../src/booking/booking_api.ts";
+import { createMastraBrain } from "../src/agent/mastraBrain.ts";
+import { createBookingApi } from "../src/booking/bookingApi.ts";
 import { addDays, localNow } from "../src/booking/rules.ts";
 import { handleChat, REFUSAL } from "../src/chat.ts";
 import { loadConfig } from "../src/config.ts";
-import { createCentAiModel } from "../src/llm/cent_ai_api.ts";
+import { createCentAiModel } from "../src/llm/centAiApi.ts";
 import type { ChatMessage } from "../src/types/chat.ts";
 
 const config = loadConfig();

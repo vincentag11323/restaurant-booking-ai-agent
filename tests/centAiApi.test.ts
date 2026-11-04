@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { APICallError } from "@ai-sdk/provider";
-import { centAiConfigFromEnv, createCentAiModel, listCentAiModels, toLlmError } from "../src/llm/cent_ai_api.ts";
+import { centAiConfigFromEnv, createCentAiModel, listCentAiModels, toLlmError } from "../src/llm/centAiApi.ts";
 import { LlmError } from "../src/types/llm.ts";
 
 const base = { baseUrl: "https://api.cent-ai.dev/v1", apiKey: "cai_test", model: "deepseek-v4.1-flash" };

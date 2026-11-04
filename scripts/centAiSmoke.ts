@@ -1,6 +1,6 @@
 // Free check of the Cent AI setup in .env: lists the models this key can use (no model call, no cost).
 // Run: npm run smoke
-import { centAiConfigFromEnv, listCentAiModels, toLlmError } from "../src/llm/cent_ai_api.ts";
+import { centAiConfigFromEnv, listCentAiModels, toLlmError } from "../src/llm/centAiApi.ts";
 
 try {
   const config = centAiConfigFromEnv();
