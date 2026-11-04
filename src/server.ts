@@ -21,12 +21,10 @@ export function createServer(deps: ServerDeps) {
   if (deps.trustProxy) app.set("trust proxy", 1);
   app.use(express.json({ limit: "64kb" }));
 
-  const publicRoutes = express.Router();
-  publicRoutes.get("/health", (_req, res) => {
+  app.get("/agents/public/health", (_req, res) => {
     res.json({ status: "ok" });
   });
-  if (apiDocs) publicRoutes.use("/docs", docsRouter);
-  app.use("/agents/public", publicRoutes);
+  if (apiDocs) app.use("/agents/public/docs", docsRouter);
 
   const chatLimiter = rateLimit({ windowMs: 60_000, limit: limits.chatPerMinute, message: { reply: CHAT_LIMIT_REPLY } });
   // Confirmations are the only requests that book, so they get their own, tighter limit (AGENT_SPEC.md §5.4).
