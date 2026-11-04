@@ -20,6 +20,7 @@ describe("agent config", () => {
       trustProxy: false,
       limits: { chatPerMinute: 10, bookingsPerHour: 3, perSession: 30 },
       llm: { format: "messages", baseUrl: "https://api.cent-ai.dev/v1", apiKey: "cai_x", model: "deepseek-v4.1-flash" },
+      apiDocs: true,
     });
   });
 
@@ -28,5 +29,19 @@ describe("agent config", () => {
       () => loadConfig({ ...env, AGENT_DRAFT_SECRET: "short", AGENT_API_KEY: "short" }),
       /AGENT_API_KEY: AGENT_API_KEY must be at least 32 characters.*AGENT_DRAFT_SECRET must be at least 16 characters|AGENT_DRAFT_SECRET must be at least 16 characters.*AGENT_API_KEY: AGENT_API_KEY must be at least 32 characters/,
     );
+  });
+
+  describe("API_DOCS (owner request 2026-11-04: interactive docs, off in production unless asked for)", () => {
+    it("shows the docs outside production by default", () => {
+      assert.equal(loadConfig(env).apiDocs, true);
+      assert.equal(loadConfig({ ...env, NODE_ENV: "development" }).apiDocs, true);
+      assert.equal(loadConfig({ ...env, NODE_ENV: "test" }).apiDocs, true);
+    });
+
+    it("hides the docs in production unless API_DOCS=true", () => {
+      assert.equal(loadConfig({ ...env, NODE_ENV: "production" }).apiDocs, false);
+      assert.equal(loadConfig({ ...env, NODE_ENV: "production", API_DOCS: "true" }).apiDocs, true);
+      assert.equal(loadConfig({ ...env, NODE_ENV: "production", API_DOCS: "false" }).apiDocs, false);
+    });
   });
 });

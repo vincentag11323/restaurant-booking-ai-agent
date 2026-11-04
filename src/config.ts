@@ -13,6 +13,9 @@ const envSchema = z.object({
   CHAT_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(10),
   BOOKINGS_LIMIT_PER_HOUR: z.coerce.number().int().positive().default(3),
   SESSION_CHAT_LIMIT: z.coerce.number().int().positive().default(30),
+  NODE_ENV: z.string().optional(),
+  // The docs list every route, so production shows them only when asked to (AGENT_SPEC.md §4.1).
+  API_DOCS: z.enum(["true", "false"]).optional(),
 });
 
 export interface AgentConfig {
@@ -24,6 +27,7 @@ export interface AgentConfig {
   trustProxy: boolean;
   limits: { chatPerMinute: number; bookingsPerHour: number; perSession: number };
   llm: CentAiConfig;
+  apiDocs: boolean;
 }
 
 export function loadConfig(env: Record<string, string | undefined> = process.env): AgentConfig {
@@ -39,5 +43,6 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     trustProxy: e.TRUST_PROXY === "true",
     limits: { chatPerMinute: e.CHAT_LIMIT_PER_MINUTE, bookingsPerHour: e.BOOKINGS_LIMIT_PER_HOUR, perSession: e.SESSION_CHAT_LIMIT },
     llm: centAiConfigFromEnv(env),
+    apiDocs: e.NODE_ENV !== "production" || e.API_DOCS === "true",
   };
 }

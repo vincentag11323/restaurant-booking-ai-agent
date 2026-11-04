@@ -12,11 +12,12 @@ import { LlmError } from "./types/llm.ts";
 
 export const REFUSAL = "I can only help with table bookings at ResortOS Dining.";
 const FALLBACK = "Sorry, I didn't catch that. Could you tell me the branch, room, date, time and number of guests?";
-const EXPIRED = "Those booking details changed or expired. Please ask again.";
-const API_DOWN = "The booking system isn't responding. Nothing was booked; please try again in a minute.";
-const BUSY = "The assistant is busy. Please try again in a moment.";
-const UNAVAILABLE = "The assistant is unavailable right now. You can still book in the app.";
-const LLM_PROBLEM = "The assistant had a problem. Please try again.";
+export const EXPIRED = "Those booking details changed or expired. Please ask again.";
+export const API_DOWN = "The booking system isn't responding. Nothing was booked; please try again in a minute.";
+export const BUSY = "The assistant is busy. Please try again in a moment.";
+export const UNAVAILABLE = "The assistant is unavailable right now. You can still book in the app.";
+export const LLM_PROBLEM = "The assistant had a problem. Please try again.";
+export const LAST_MESSAGE_MUST_BE_USER = "Invalid request: the last message must be from the guest";
 // The booking API's per-email limits (AGENT_SPEC.md §5.4). Safe to show: they only concern the email the guest typed.
 const LIMIT_NOT_SIGNED_UP = "This email already has a booking made with the assistant. To book a different time, sign up with this email in the app, cancel that booking there, then ask me again.";
 const LIMIT_SIGNED_UP = "This email already has 3 upcoming assistant bookings. Sign in to manage them.";
@@ -54,7 +55,7 @@ export interface ChatResult {
   retryAfterSeconds?: number;
 }
 
-const draftSchema = z.object({
+export const draftSchema = z.object({
   branch: z.enum(BRANCHES),
   sector: z.enum(SECTORS),
   date: z.string(),
@@ -63,7 +64,7 @@ const draftSchema = z.object({
   specialRequests: z.string().trim().max(500).optional().transform((s) => s || undefined),
 });
 
-const requestSchema = z.object({
+export const chatRequestSchema = z.object({
   contact: z.object({
     email: z.email().max(254),
     phone: z.string().trim().regex(/^\+?[0-9 -]{6,20}$/, "Invalid phone number").optional(),
@@ -92,7 +93,7 @@ function mapLlmError(err: LlmError): ChatResult {
 export async function handleChat(raw: unknown, request: { clientIp?: string }, deps: ChatDeps): Promise<ChatResult> {
   const now = deps.now ?? (() => new Date());
   const log = deps.log ?? (() => {});
-  const parsed = requestSchema.safeParse(raw);
+  const parsed = chatRequestSchema.safeParse(raw);
   if (!parsed.success) return { status: 400, body: { reply: `Invalid request: ${parsed.error.issues[0].message}` } };
   const { contact, messages, confirm } = parsed.data;
   const email = contact.email.toLowerCase();
@@ -103,7 +104,7 @@ export async function handleChat(raw: unknown, request: { clientIp?: string }, d
 
   try {
     if (confirm) return await confirmBooking(confirm, email, contact.phone, request.clientIp, deps, now, alternativesFor, log);
-    if (messages.at(-1)?.role !== "user") return { status: 400, body: { reply: "Invalid request: the last message must be from the guest" } };
+    if (messages.at(-1)?.role !== "user") return { status: 400, body: { reply: LAST_MESSAGE_MUST_BE_USER } };
 
     // What the tools learned this turn. The reply is decided from this, not from model text, when it matters.
     const turn: { draft?: BookingDraft; full?: { draft: BookingDraft; alternatives: PendingBooking[] }; topic?: string; refusal?: string } = {};
